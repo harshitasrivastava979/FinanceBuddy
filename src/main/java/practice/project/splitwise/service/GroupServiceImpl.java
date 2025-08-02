@@ -373,4 +373,39 @@ public class GroupServiceImpl implements GroupService {
             expenseRepo.save(ex);
         }
     }
+
+    @Override
+    public List<GroupCreationResponseDTO> getAllGroupsForUser(Integer userId) {
+        Optional<Users> user = userRepo.findById(userId);
+        if (user.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<UsersGroup> userGroups = user.get().getUsersGroups();
+        return userGroups.stream()
+                .map(this::convertToGroupResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private GroupCreationResponseDTO convertToGroupResponseDTO(UsersGroup group) {
+        GroupCreationResponseDTO dto = new GroupCreationResponseDTO();
+        dto.setId(group.getId());
+        dto.setName(group.getName());
+        dto.setDescription(group.getDescription());
+        dto.setCurrency(group.getDefaultCurrency());
+        
+        // Calculate total spending
+        double totalSpending = group.getExpenses().stream()
+                .mapToDouble(Expense::getAmount)
+                .sum();
+        dto.setTotalSpending(totalSpending);
+        
+        // Convert users to UserResponseDTO
+        List<UserResponseDTO> userResponseDTOList = group.getUsers().stream()
+                .map(user -> new UserResponseDTO(user.getId(), user.getName(), user.getMail()))
+                .collect(Collectors.toList());
+        dto.setUsersList(userResponseDTOList);
+        
+        return dto;
+    }
 }

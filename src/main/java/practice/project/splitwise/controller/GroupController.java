@@ -12,6 +12,7 @@ import practice.project.splitwise.service.GroupService;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api")
 public class GroupController {
     @Autowired
     private GroupService groupService;
@@ -50,5 +51,15 @@ public class GroupController {
             @RequestParam(required = false) String endDate) {
         List<ExpenseDTO> expenses = groupService.getExpensesByFilter(groupId, category, startDate, endDate);
         return ResponseEntity.ok(expenses);
+    }
+
+    @GetMapping("/groups")
+    public ResponseEntity<?> getAllGroups(@RequestParam Integer userId) {
+        try {
+            List<GroupCreationResponseDTO> groups = groupService.getAllGroupsForUser(userId);
+            return ResponseEntity.ok(groups);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching groups: " + e.getMessage());
+        }
     }
 }
